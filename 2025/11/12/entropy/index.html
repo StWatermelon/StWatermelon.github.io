@@ -1,0 +1,238 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>熵相关讨论 | Watermelon's</title><meta name="author" content="StWatermelon"><meta name="copyright" content="StWatermelon"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前情提要：在学习softmax处理logits时，对于交叉熵损失的来源以及其原理不够清晰，于是就去学习了熵这一块相关原理，并且顺便又看了一遍热统里头的熵的定义，权当作个人的一些简单看法。 1.信息熵 1.1 信息量： “信息，本质上是用来消除不确定度的事物。”——Claude Shannon 事情本身具有不确定性，导致当观测者考察这件事情时，对这件事情的认知存在缺陷，（通俗来说，就是存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="熵相关讨论">
+<meta property="og:url" content="http://stwatermelon.github.io/2025/11/12/entropy/index.html">
+<meta property="og:site_name" content="Watermelon&#39;s">
+<meta property="og:description" content="前情提要：在学习softmax处理logits时，对于交叉熵损失的来源以及其原理不够清晰，于是就去学习了熵这一块相关原理，并且顺便又看了一遍热统里头的熵的定义，权当作个人的一些简单看法。 1.信息熵 1.1 信息量： “信息，本质上是用来消除不确定度的事物。”——Claude Shannon 事情本身具有不确定性，导致当观测者考察这件事情时，对这件事情的认知存在缺陷，（通俗来说，就是存">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://stwatermelon.github.io/img/avatar.jpg">
+<meta property="article:published_time" content="2025-11-12T09:45:00.000Z">
+<meta property="article:modified_time" content="2025-11-12T17:01:03.008Z">
+<meta property="article:author" content="StWatermelon">
+<meta property="article:tag" content="learning">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://stwatermelon.github.io/img/avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "熵相关讨论",
+  "url": "http://stwatermelon.github.io/2025/11/12/entropy/",
+  "image": "http://stwatermelon.github.io/img/avatar.jpg",
+  "datePublished": "2025-11-12T09:45:00.000Z",
+  "dateModified": "2025-11-12T17:01:03.008Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "StWatermelon",
+      "url": "http://StWatermelon.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://stwatermelon.github.io/2025/11/12/entropy/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '熵相关讨论',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.0.0"></head><body><div id="web_bg" style="background-image: url(/img/favicon.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-archive"></i><span> Archive</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-tag"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-link"></i><span> Links</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/favicon.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/img/logo.jpg" alt="Logo"><span class="site-name">Watermelon's</span></a><a class="nav-page-title" href="/"><span class="site-name">熵相关讨论</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-archive"></i><span> Archive</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-tag"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-link"></i><span> Links</span></a></div><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">熵相关讨论</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-12T09:45:00.000Z" title="发表于 2025-11-12 17:45:00">2025-11-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-11-12T17:01:03.008Z" title="更新于 2025-11-13 01:01:03">2025-11-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<p>前情提要：在学习softmax处理logits时，对于交叉熵损失的来源以及其原理不够清晰，于是就去学习了熵这一块相关原理，并且顺便又看了一遍热统里头的熵的定义，权当作个人的一些简单看法。</p>
+<h1 id="信息熵">1.信息熵</h1>
+<h2 id="信息量">1.1 信息量：</h2>
+<p>“信息，本质上是用来消除不确定度的事物。”——Claude Shannon</p>
+<p>事情本身具有不确定性，导致当观测者考察这件事情时，对这件事情的认知存在缺陷，（通俗来说，就是存在疑惑）而信息正是填补上观测者的疑惑，也就是消除了事件不确定度的“工具”。比如：当一场比赛进行时，对于正在直播中的观众，比赛结果是存在不确定度的，因此存在信息来消除这种不确定度；相反，“太阳从东边升起”这件事情是确定的，不存在任何不确定度，因此不存在有效的信息。也就是说，信息与事件的不确定度大小直接相关，那么信息量便可以衡量一件事情的不确定度。</p>
+<h2 id="信息量表达式的推演">1.2 信息量表达式的推演：</h2>
+<p>由1.1的叙述，信息量（I）与不确定度（或者说，一件事情发生的概率）相关，我们从以下性质中推导其表达式。</p>
+<p>性质一：独立事件的信息量可加：两件独立事件同时发生的信息量等于各自发生的信息量之和，即： <span class="math display">$$
+I_{A,B}=I_A+I_B \tag{1.1}
+$$</span> 性质二：独立事件概率的乘法公式： <span class="math display">$$
+P_{A,B}=P_A+P_B\tag{1.2}
+$$</span> 我们将事件用其发生的概率表示，式（1.1）及（1.2）可以表示为： <span class="math display">$$
+I(p_1\times p_2)=I(p_1)+I(p_2)\tag{1.3}
+$$</span> 符合式（1.3）的函数即为对数函数，即有： <span class="math display">$$
+I(p)\propto \log_a(p)\tag{1.4}
+$$</span> 其比例系数由函数的单调性决定，注意到，事件发生的概率越小，其不确定度越大，对应的信息量也就越大，因此我们取正比系数为-1。</p>
+<p>关于底数a的选取，理论上来说可以随意，常用的取法是2或e。前者对应单位比特（bit）,即一个二进制选择中的信息量；后者对应单位奈特（nat）。bit的含义比较清晰，nat的计算比较简洁。（二者的换算关系显然）</p>
+<p>因此我们最终获得了信息量的表达式： <span class="math display">$$
+\boxed{I(p)=-\log_2(p)}\tag{1.5}
+$$</span></p>
+<h2 id="信息熵的表达式">1.3 信息熵的表达式：</h2>
+<p>我们现在关注事件集合的整体不确定度。这个“整体不确定度”就是熵。一个很自然的想法是，一个事件集合（系统）的熵应该是其中事件信息量的平均（实际上熵也是这样定义的） <span class="math display">$$
+\boxed{H= \sum_{i=1}^n -\log_2 (p_i)}\tag{1.6}
+$$</span> 熵是对于整体系统不确定度的衡量，是系统的一种属性。</p>
+<h1 id="kl散度交叉熵">2.KL散度、交叉熵</h1>
+<h2 id="kl散度">2.1 KL散度</h2>
+<p>这个名词里头的KL是Kullback-Leibler，是这个指标的发现者的名字，它的另一个名字是相对熵。KL散度是两个不同系统（概率分布）的相似度的度量。我们常用KL散度来衡量“近似分布”与“真实分布”之间的相似度，从而确定近似分布相对于真实分布的偏差。因此，在神经网络中，KL散度可以作为损失函数：通过优化参数使得KL散度降低，可以使得预测模型接近于真实模型。</p>
+<p>KL散度的表达式如下： <span class="math display">$$
+D_{KL}(P \parallel Q) = \sum_{x} P(x) \log \frac{P(x)}{Q(x)}\tag{2.1}
+$$</span></p>
+<p>值得注意的是，上式描述的是用模型Q去近似模型P。（P相对于Q的散度，即从P的视角看，Q的准度如何，从公式中也能看出，P是权重项，所以实在P为真实分布的基础上去衡量Q）因此，P与Q的顺序很重要，当顺序对换之时，其含义发生了变化，数值也不一样。</p>
+<h2 id="交叉熵">2.2 交叉熵</h2>
+<p>我们对式（2.1）进行展开： <span class="math display">$$
+\begin{align*}
+D_{KL}(P \parallel Q) &amp;= \sum_{x} P(x) \log \frac{P(x)}{Q(x)} \\
+&amp;= \sum_{x} P(x) \left[ \log_2 P(x) - \log_2 Q(x) \right]\\
+&amp;=-\left[-\sum_{x} P(x)\log_2P(x)\right]-\sum_{x} P(x)\log_2Q(x)\\
+&amp;=-H(P)-\sum_{x} P(x)\log_2Q(x)
+\end{align*}\tag{2.2}
+$$</span> 上式中的第一项是真实分布的熵值，是一个已知量。因此，当我们利用KL散度作为损失函数评估预测模型的时候，我们实际上只关心第二项的大小。更为严格地，因该先证明式（2.2）恒正，这里有一个Gibbs不等式去证明它必然是正的，这个证明其实可以直接求导，（或者直接上Jensen不等式）这里就不说了。</p>
+<p>因此，在考虑损失函数的时候，我们只需关心交叉熵，这个损失函数被称为“交叉熵损失”。</p>
+<p>特别的，当真实模型是独热编码时，它的熵值为0，此时KL散度与交叉熵相等。</p>
+<h1 id="热力学熵">3.热力学熵</h1>
+<p>这部分实际上和机器学习领域无关，只是附在后面的一篇有趣的证明罢了，我们聚焦于证明Clousius熵（宏观熵）与Boltzman熵（微观熵）的等价。</p>
+<h2 id="clousius熵热温比">3.1 Clousius熵：热温比</h2>
+<p>在可逆Carnot循环中，可以发现：（详细过程参见任何一本普通物理学书，比如说刘玉鑫的《热学》） <span class="math display">$$
+\oint \frac{\delta Q_{\text{rev}}}{T} = 0\tag{3.1}
+$$</span> 这表明，循环过程中热温比的总变化为零，也就是说其取值与循环路径无关，是一个态函数。因此我们便有了宏观熵的定义，即： <span class="math display">$$
+dS = \frac{\delta Q_{\text{rev}}}{T}\tag{3.2}
+$$</span> （顺便一提，不可逆过程的熵变不可以直接积分，要在两个态之间构造可逆过程再积分，但这不重要……）我们可以定性地分析为什么这个定义与系统的无需程度有关：Q是吸热或者放热，其中系统吸热，分子动能增加，混乱度增加；放热反之。因此Q实际上是改变体系混乱度的因素。但系统具有温度T，这也影响着体系中分子的动能。可以自然地想到，当T很大时，相对而言应当投入更大的热量才能够使得系统的混乱度有显著的改变；反之同理。</p>
+<p>简而言之，热温比实际上是用参数T校准了Q对于混乱度的实际影响——它不再是单纯看“给了多少能量”，而是看“这些能量在当前已有的混乱程度上，能让混乱度改变多少”，因此能直接体现混乱度的变化。</p>
+<h2 id="温度的定义">3.2 温度的定义</h2>
+<p>现在考虑一个复合孤立的系统，由A，B构成，它们之间仅允许热交换。</p>
+<p>总内能恒定： <span class="math display">$$
+U_A + U_B = \text{const}\tag{3.3}
+$$</span></p>
+<p>现在我们考虑二者的热交换，热交换的最终平衡态应该保证熵值最大，极值条件： <span class="math display">$$
+\frac{d S_{\text{总}}}{d U_A} = \frac{\partial S_A}{\partial U_A} + \frac{\partial S_B}{\partial U_B} \cdot \frac{d U_B}{d U_A}=0\tag{3.4}
+$$</span> 将式(3.3)代入式（3.4），最终可以化简得到： <span class="math display">$$
+\frac{\partial S_A}{\partial U_A} = \frac{\partial S_B}{\partial U_B}\tag{3.5}
+$$</span> 这便是平衡条件，我们常说的热平衡时，温度相等也就是上式，由此，我们可以发现温度的定义： <span class="math display">$$
+\boxed{\frac{1}{T} = \left( \frac{\partial S}{\partial U} \right)_{V, N}}\tag{3.6}
+$$</span> 这里的偏导数表示在系统的体积及分子数目恒定时进行。</p>
+<h2 id="宏观熵微观熵的等价性">3.3 宏观熵微观熵的等价性</h2>
+<p>Part 3.2中的温度定义实际上基于热力学的基本关系，S是作为衡量系统混乱度的定义出现的，（而非热温比）因此，我们考虑微观Boltzman熵的微元： <span class="math display">$$
+dS_{\text{Boltzmann}} = k \cdot \frac{d\Omega}{\Omega},其中\Omega表示微观状态数\tag{3.7}
+$$</span> 直接将（3.7）带入（3.6）得到：<br />
+<span class="math display">$$
+\frac{1}{T} = \frac{k}{\Omega} \cdot \frac{d\Omega}{dU} ，整理后： \frac{k d\Omega}{\Omega} = \left(\frac{dU}{T}\right)_{V,N} \tag{3.8}
+$$</span> 由热一，固定体积下，内能的变化量及为热量的变化量，结合式（3.2）并作积分，立即得到： <span class="math display">$$
+\Delta S_{\text{Boltzmann}} = \Delta S_{\text{Clausius}}\tag{3.9}
+$$</span> 这样也就证明了二者等价。</p>
+<h1 id="结束语">结束语</h1>
+<p>熵是用对数模型量化系统复杂的一种数学结构，在各种领域中都有用。（包括但不限于文中提及的两种）</p>
+<p>P.S.写了半天（字面意思）终于写完了~~</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://StWatermelon.github.io">StWatermelon</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://stwatermelon.github.io/2025/11/12/entropy/">http://stwatermelon.github.io/2025/11/12/entropy/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://StWatermelon.github.io" target="_blank">Watermelon's</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/learning/">learning</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/11/12/linearregression/" title=""><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2"></div></div><div class="info-2"><div class="info-item-1"> </div></div></div></a><a class="pagination-related" href="/2025/10/27/Prologue/" title="代序"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">代序</div></div><div class="info-2"><div class="info-item-1">这个是第一篇文章，实际上因为把自带的文章删了之后就加载不出来网页了，所以我就去随便找了几篇之前写的一些文字放在这里，作为第一篇文章——其实它也没有序的作用。找了一找，只找到了这一篇： ​  《当我晚上睡不着的时候我会想到什么》  ​ 怎么老有早八睡不着的时候，也不知道这是我度过的第几个通宵了。 ​ 于是我便按照以往的方式，把我想到的事情一一记录下来：我不止一次地用手感触着我的心跳，我想看看它是否会因我这样的熬夜行为而有所异常——然而它并没有。我又想去感受一下身体的每一个部位的情况，但除了肠胃有些空腹感，其它却依旧如故。也许时间再早一些，我会奢望找到哪怕一丝困倦的感觉，从而能够睡去——但已经到了现在这个时间了，我对此也不再渴望。 ​ 我将怎样度过这个夜晚？我倾听楼道上偶尔传来的起夜声音，倾听寝室中其它人的一呼一吸，我能听到那些曾以为鸦雀无声之处里的所有聒噪。我不知道我究竟是想要打发时间，抑或是拿这些时间来做真正称得上有意义的事——也许就在这样的周旋之中，时间悄悄地流逝了，但我也没有看到一丝一毫我想要睡去的欲望。 ​ 或许夜晚这个词语从来不会与喜乐之情同时出现，我从...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">StWatermelon</div><div class="author-info-description">Stay Hungry, Stay Foolish.</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/StWatermelon" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:2604567778@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">A tenacious watermelon never has worries~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E7%86%B5"><span class="toc-number">1.</span> <span class="toc-text">1.信息熵</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E9%87%8F"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 信息量：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E9%87%8F%E8%A1%A8%E8%BE%BE%E5%BC%8F%E7%9A%84%E6%8E%A8%E6%BC%94"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 信息量表达式的推演：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E7%86%B5%E7%9A%84%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 信息熵的表达式：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#kl%E6%95%A3%E5%BA%A6%E4%BA%A4%E5%8F%89%E7%86%B5"><span class="toc-number">2.</span> <span class="toc-text">2.KL散度、交叉熵</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#kl%E6%95%A3%E5%BA%A6"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 KL散度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%A4%E5%8F%89%E7%86%B5"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 交叉熵</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%83%AD%E5%8A%9B%E5%AD%A6%E7%86%B5"><span class="toc-number">3.</span> <span class="toc-text">3.热力学熵</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#clousius%E7%86%B5%E7%83%AD%E6%B8%A9%E6%AF%94"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Clousius熵：热温比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B8%A9%E5%BA%A6%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 温度的定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%8F%E8%A7%82%E7%86%B5%E5%BE%AE%E8%A7%82%E7%86%B5%E7%9A%84%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 宏观熵微观熵的等价性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E6%9D%9F%E8%AF%AD"><span class="toc-number">4.</span> <span class="toc-text">结束语</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/11/12/Generalization/" title="无标题">无标题</a><time datetime="2025-11-12T14:42:59.869Z" title="发表于 2025-11-12 22:42:59">2025-11-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/11/12/linearregression/" title="无标题">无标题</a><time datetime="2025-11-12T14:40:55.672Z" title="发表于 2025-11-12 22:40:55">2025-11-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/11/12/entropy/" title="熵相关讨论">熵相关讨论</a><time datetime="2025-11-12T09:45:00.000Z" title="发表于 2025-11-12 17:45:00">2025-11-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/Prologue/" title="代序">代序</a><time datetime="2025-10-27T13:24:25.000Z" title="发表于 2025-10-27 21:24:25">2025-10-27</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By StWatermelon</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 8.0.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.1</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.1"></script><script src="/js/main.js?v=5.5.1"></script><div class="js-pjax"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
